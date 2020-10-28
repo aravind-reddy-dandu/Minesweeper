@@ -2,6 +2,19 @@ import numpy as np
 import random
 
 
+class Cell:
+    def __init__(self, row, col):
+        self.row = row
+        self.col = col
+        self.is_mine = False
+        self.is_flagged = False
+        self.curr_value = None
+        self.mines_surrounding = None
+        self.safe_cells_surr = None
+        self.covered_neighbours = None
+        self.total_neighbours = None
+
+
 # Add m mines to the grid
 class Environment:
     def __init__(self, dimension, density):
@@ -54,9 +67,21 @@ class Environment:
         self.add_mines()
         self.add_values()
 
+    def query_cell(self, query_cell):
+        if not self.isCellValid(query_cell.row, query_cell.col):
+            return
+        query_cell.curr_value = self.grid[query_cell.row][query_cell.col]
+        if self.grid[query_cell.row][query_cell.col] == -1:
+            query_cell.is_mine = True
+
+    def isCellValid(self, row: int, col: int):
+        return (row >= 0) and (row < len(self.grid)) and (col >= 0) and (col < len(self.grid[0]))
+
 
 # n = 10  # size of grid
 # m = 30  # number of mines
 # for i in range(20):
 #     sample = Environment(10, 0.3)
-#     print(sample.grid)
+#     cell = Cell(9, 9)
+#     valid = sample.isCellValid(cell.row, cell.col)
+#     print(valid)
