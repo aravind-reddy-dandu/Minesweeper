@@ -114,7 +114,7 @@ class NaiveAgent:
             return False
         random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
             random.randrange(0, len(self.currGrid) - 1)]
-        while not random_cell.is_flagged and random_cell.curr_value is not None:
+        while random_cell.is_flagged or (random_cell.curr_value is not None):
             random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
                 random.randrange(0, len(self.currGrid) - 1)]
         self.env.query_cell(random_cell)
@@ -136,6 +136,6 @@ class NaiveAgent:
         pprint(numeric_grid)
 
 
-env = Environment(10, 0.2)
+env = Environment(10, 0.9)
 agent = NaiveAgent(env)
 agent.play()
