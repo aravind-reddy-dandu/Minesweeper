@@ -3,6 +3,7 @@ from pprint import pprint
 
 import numpy
 from Environment import Cell, Environment
+from Graphics_grid import GraphicGrid
 
 
 class NaiveAgent:
@@ -12,6 +13,7 @@ class NaiveAgent:
         self.grid_size = env.grid.shape[0]
         self.currGrid = [[Cell(j, i) for i in range(self.grid_size)] for j in range(self.grid_size)]
         self.mines_exploded = 0
+        self.graphics = GraphicGrid([])
 
     def play(self):
         random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
@@ -36,7 +38,7 @@ class NaiveAgent:
         for row in range(self.grid_size):
             for column in range(self.grid_size):
                 cell = self.currGrid[row][column]
-                self.populate_cell(cell)
+                # self.populate_cell(cell)
                 if (cell.curr_value is not None) and not cell.is_flagged:
                     if cell.curr_value - cell.mines_surrounding == cell.covered_neighbours:
                         if cell.curr_value != 0 and cell.covered_neighbours != 0:
@@ -133,9 +135,19 @@ class NaiveAgent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
+        if len(self.graphics.grid) == 0:
+            self.graphics.updateGrid(numeric_grid)
+            self.graphics.initVisuals()
+        self.graphics.updateGrid(numeric_grid)
         pprint(numeric_grid)
 
 
-env = Environment(10, 0.9)
-agent = NaiveAgent(env)
-agent.play()
+Store = []
+for i in range(1):
+    env = Environment(20, 0.2)
+    agent = NaiveAgent(env)
+    agent.play()
+    Store.append(agent.mines_exploded)
+
+avg = numpy.average(Store)
+print(avg)
