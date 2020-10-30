@@ -12,36 +12,7 @@ class GraphicGrid:
         self.initVisuals()
 
     def initVisuals(self):
-        BLACK = (0, 0, 0)
-        WHITE = (255, 255, 255)
-        GREEN = (0, 255, 0)
-        RED = (255, 0, 0)
-        GREY = (128, 128, 128)
-        YELLOW = (255, 255, 0)
-        # This sets the WIDTH and HEIGHT of each grid location
-        WIDTH = 20
-        HEIGHT = 20
-
-        # This sets the margin between each cell
-        MARGIN = 5
-        # Initialize pygame
-        pygame.init()
-
-        # Set the HEIGHT and WIDTH of the screen
-        l = int((len(self.grid) * 255) / 10)
-        WINDOW_SIZE = [l, l]
-        screen = pygame.display.set_mode(WINDOW_SIZE)
-
-        # Set title of screen
-        pygame.display.set_caption("MineSweeper")
-
-        # Loop until the user clicks the close button.
-        done = False
-
-        # Used to manage how fast the screen updates
-        clock = pygame.time.Clock()
-        # Set the screen background
-        screen.fill(BLACK)
+        BLACK, GREEN, GREY, HEIGHT, MARGIN, RED, WIDTH, YELLOW, clock, screen = self.Init_view()
 
         # Draw the grid
         for row in range(len(self.grid)):
@@ -80,6 +51,34 @@ class GraphicGrid:
 
         # Be IDLE friendly. If you forget this line, the program will 'hang'
         # on exit.
+
+    def Init_view(self):
+        BLACK = (0, 0, 0)
+        WHITE = (255, 255, 255)
+        GREEN = (0, 255, 0)
+        RED = (255, 0, 0)
+        GREY = (128, 128, 128)
+        YELLOW = (255, 255, 0)
+        # This sets the WIDTH and HEIGHT of each grid location
+        WIDTH = 20
+        HEIGHT = 20
+        # This sets the margin between each cell
+        MARGIN = 5
+        # Initialize pygame
+        pygame.init()
+        # Set the HEIGHT and WIDTH of the screen
+        l = int((len(self.grid) * 255) / 10)
+        WINDOW_SIZE = [l, l]
+        screen = pygame.display.set_mode(WINDOW_SIZE)
+        # Set title of screen
+        pygame.display.set_caption("MineSweeper")
+        # Loop until the user clicks the close button.
+        done = False
+        # Used to manage how fast the screen updates
+        clock = pygame.time.Clock()
+        # Set the screen background
+        screen.fill(BLACK)
+        return BLACK, GREEN, GREY, HEIGHT, MARGIN, RED, WIDTH, YELLOW, clock, screen
 
     def quit_visuals(self):
         pygame.quit()

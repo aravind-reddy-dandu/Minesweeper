@@ -137,6 +137,7 @@ class NaiveAgent:
                     numeric_grid[row][column] = 'b'
         if len(self.graphics.grid) == 0:
             self.graphics.updateGrid(numeric_grid)
+            self.graphics.Init_view()
             self.graphics.initVisuals()
         self.graphics.updateGrid(numeric_grid)
         pprint(numeric_grid)
