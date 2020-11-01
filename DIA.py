@@ -12,6 +12,7 @@ class DI_Agent:
         self.grid_size = env.grid.shape[0]
         self.currGrid = [[Cell(j, i) for i in range(self.grid_size)] for j in range(self.grid_size)]
         self.mines_exploded = 0
+        self.probability = None
 
     def play(self):
         random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
@@ -135,25 +136,139 @@ class DI_Agent:
                     numeric_grid[row][column] = 'b'
         pprint(numeric_grid)
 
-    def probabilities_of_cells(self):
+    # def probabilities_of_cells(self):
+    #     for row in range(self.grid_size):
+    #         for column in range(self.grid_size):
+    #             cell = self.currGrid[row][column]
+    #             if (cell.curr_value is not None) and not cell.is_flagged:
+    #                 mines_remaining = cell.curr_value - cell.mines_surrounding
+    #                 covered_cells = cell.covered_neighbours
+    #                 prob_mine = mines_remaining / covered_cells
+    #                 self.mark_neighbours_probability(cell, prob_mine)
+    #
+    # def mark_neighbours_probability(self, cell, prob_mine):
+    #     for i in [-1, 0, 1]:
+    #         for j in [-1, 0, 1]:
+    #             if (i == 0 and j == 0) or not self.isCellValid(cell.row + i, cell.col + j):
+    #                 continue
+    #             neighbour = self.currGrid[cell.row + i][cell.col + j]
+    #             if not neighbour.is_flagged and neighbour.curr_value is None:
+    #                 if neighbour.probability < prob_mine or neighbour.probability is None:
+    #                     neighbour.probability = prob_mine
+
+    KB = d1_list
+    # IF cell == 1 finding count value
+    def sub_1(self, cell):
+        cell.temp1 = 1
+        # taking only required equation from KB
+        for i in range(0, d1_list):
+            if cell_neighbours not in d1_list[i][0]:
+                d1_list.remove(d1_list[i])
+
+        # sub cell = 1 and reducing the sum of the equation value by 1
+        for i in d1_list:
+            if cell in i[0]:
+                i[1] -= 1
+                i[0].remove(cell)
+        # repeat process till we find all the constrain equation values, if cell value is 1
+        while 1:
+            count1 = 0
+            count2 = 0
+            for i in range(0,len(d1_list)):
+                if len(d1_list[i][0]) == i[1]:
+                    count1 += 1
+                    for k in i[0]:
+                        list1.append(k)     # append cells to list1
+                    d1_list.remove(i)
+                elif d1_list[i][1] == 0:
+                    count2 += 1
+                    for k in i[0]:
+                        list0.append(k)    # append cells to list0
+                    d1_list.remove(i)
+            # updating the equations
+            for i in range(0, len(d1_list)):
+                for j in list0:
+                    if j in d1_list[i][0]:
+                        count2 += 1
+                        d1_list[i][0].remove(j)
+                for k in list1:
+                    if k in i[0]:
+                        count1 += 1
+                        d1_list[i][1] -= 1
+                        d1_list[i][0].remove(k)
+            if count1 == 0 or count2 == 0:
+                break
+
+        if len(d1_list) == 0:
+            return 1
+        else:
+            a = 1
+            for i in d1_list:
+                a *= fact(len(i[0]))/(fact(i[1])*fact(len(i[0]) - i[1]))  # nCr formula
+            return a
+
+    KB = d2_list
+    def sub_0(self, cell):
+        cell.temp1 = 1
+        # taking only required equation from KB
+        for i in d2_list:
+            if cell_neighbours not in i[0]:
+                d2_list.remove(i)
+        # sub cell = 0
+        for i in d2_list:
+            if cell in i[0]:
+                i[0].remove(cell)
+        # repeat process till we find all the constrain equation values, if cell value is 0
+        while 1:
+            count1 = 0
+            count2 = 0
+            for i in range(0,len(d2_list)):
+                if len(d2_list[i][0]) == i[1]:
+                    count1 += 1
+                    for k in i[0]:
+                        list1.append(k)     # append cells to list1
+                    d2_list.remove(i)
+                elif d2_list[i][1] == 0:
+                    count2 += 1
+                    for k in i[0]:
+                        list0.append(k)    # append cells to list0
+                    d2_list.remove(i)
+            # updating the equations
+            for i in range(0, len(d2_list)):
+                for j in list0:
+                    if j in d2_list[i][0]:
+                        count2 += 1
+                        d2_list[i][0].remove(j)
+                for k in list1:
+                    if k in i[0]:
+                        count1 += 1
+                        d2_list[i][1] -= 1
+                        d2_list[i][0].remove(k)
+            if count1 == 0 or count2 == 0:
+                break
+
+        if len(d2_list) == 0:
+            return 1
+        else:
+            a = 1
+            for i in d2_list:
+                a *= fact(len(i[0]))/(fact(i[1])*fact(len(i[0]) - i[1]))  # nCr formula
+            return a
+    def probability(self, cell):
         for row in range(self.grid_size):
             for column in range(self.grid_size):
                 cell = self.currGrid[row][column]
-                if (cell.curr_value is not None) and not cell.is_flagged:
-                    mines_remaining = cell.curr_value - cell.mines_surrounding
-                    covered_cells = cell.covered_neighbours
-                    prob_mine = mines_remaining / covered_cells
-                    self.mark_neighbours_probability(cell, prob_mine)
+                cell.probability = sub_1(cell)/sub_1(cell) + sub_0(cell)
 
-    def mark_neighbours_probability(self, cell, prob_mine):
-        for i in [-1, 0, 1]:
-            for j in [-1, 0, 1]:
-                if (i == 0 and j == 0) or not self.isCellValid(cell.row + i, cell.col + j):
-                    continue
-                neighbour = self.currGrid[cell.row + i][cell.col + j]
-                if not neighbour.is_flagged and neighbour.curr_value is None:
-                    if neighbour.probability < prob_mine or neighbour.probability is None:
-                        neighbour.probability = prob_mine
+
+
+
+
+
+
+
+
+
 
 
 
