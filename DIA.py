@@ -1,6 +1,6 @@
 import random
 from pprint import pprint
-
+import math
 import numpy
 from Environment import Cell, Environment
 
@@ -136,6 +136,8 @@ class DI_Agent:
                     numeric_grid[row][column] = 'b'
         pprint(numeric_grid)
 
+
+
     # def probabilities_of_cells(self):
     #     for row in range(self.grid_size):
     #         for column in range(self.grid_size):
@@ -155,6 +157,8 @@ class DI_Agent:
     #             if not neighbour.is_flagged and neighbour.curr_value is None:
     #                 if neighbour.probability < prob_mine or neighbour.probability is None:
     #                     neighbour.probability = prob_mine
+
+
 
     KB = d1_list
     # IF cell == 1 finding count value
@@ -204,7 +208,7 @@ class DI_Agent:
         else:
             a = 1
             for i in d1_list:
-                a *= fact(len(i[0]))/(fact(i[1])*fact(len(i[0]) - i[1]))  # nCr formula
+                a *= math.factorial(len(i[0]))/(math.factorial(i[1])*math.factorial(len(i[0]) - i[1]))  # nCr formula
             return a
 
     KB = d2_list
@@ -252,23 +256,13 @@ class DI_Agent:
         else:
             a = 1
             for i in d2_list:
-                a *= fact(len(i[0]))/(fact(i[1])*fact(len(i[0]) - i[1]))  # nCr formula
+                a *= math.factorial(len(i[0]))/(math.factorial(i[1])*math.factorial(len(i[0]) - i[1]))  # nCr formula
             return a
-    def probability(self, cell):
+    def probability(self):
         for row in range(self.grid_size):
             for column in range(self.grid_size):
                 cell = self.currGrid[row][column]
                 cell.probability = sub_1(cell)/sub_1(cell) + sub_0(cell)
-
-
-
-
-
-
-
-
-
-
 
 
 
