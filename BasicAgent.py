@@ -1,7 +1,8 @@
 import random
 from pprint import pprint
+import time
 
-import numpy
+import numpy as np
 from Environment import Cell, Environment
 from Graphics_grid import GraphicGrid
 
@@ -16,14 +17,14 @@ class NaiveAgent:
         self.graphics = GraphicGrid([])
 
     def play(self):
-        random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
-            random.randrange(0, len(self.currGrid) - 1)]
+        random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
+            random.randrange(0, len(self.currGrid))]
         self.env.query_cell(random_cell)
         while random_cell.is_mine:
             random_cell.is_mine = False
             random_cell.curr_value = None
-            random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
-                random.randrange(0, len(self.currGrid) - 1)]
+            random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
+                random.randrange(0, len(self.currGrid))]
             self.env.query_cell(random_cell)
         self.render_basic_view()
         while True:
@@ -114,11 +115,11 @@ class NaiveAgent:
     def open_random_cell(self):
         if not self.have_free_cells():
             return False
-        random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
-            random.randrange(0, len(self.currGrid) - 1)]
+        random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
+            random.randrange(0, len(self.currGrid))]
         while random_cell.is_flagged or (random_cell.curr_value is not None):
-            random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
-                random.randrange(0, len(self.currGrid) - 1)]
+            random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
+                random.randrange(0, len(self.currGrid))]
         self.env.query_cell(random_cell)
         if random_cell.is_mine:
             self.mines_exploded += 1
@@ -140,15 +141,25 @@ class NaiveAgent:
             self.graphics.Init_view()
             self.graphics.initVisuals()
         self.graphics.updateGrid(numeric_grid)
-        pprint(numeric_grid)
+        # # PPrint is impacting performance a lot
+        # pprint(numeric_grid)
 
 
-Store = []
-for i in range(1):
-    env = Environment(20, 0.2)
-    agent = NaiveAgent(env)
-    agent.play()
-    Store.append(agent.mines_exploded)
+density_store = {}
+for d in range(1, 10, 1):
+    density = d/10
+    Store = {'bombs': [], 'time': []}
+    for i in range(50):
+        start = time.process_time()
+        env = Environment(10, density)
+        agent = NaiveAgent(env)
+        agent.play()
+        Store['bombs'].append(agent.mines_exploded)
+        Store['time'].append(time.process_time() - start)
 
-avg = numpy.average(Store)
-print(avg)
+    print('Average number of bombs exploded is ' + str(np.average(Store['bombs'])))
+    print('Average time taken ' + str(np.average(Store['time'])))
+    density_store[density] = str(np.average(Store['bombs']))
+print(density_store)
+for key in density_store.keys():
+    print(str(key), str(density_store[key]))

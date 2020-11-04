@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from pprint import pprint
 
 
 class Cell:
@@ -25,9 +26,12 @@ class Environment:
         self.opened = np.zeros((self.n, self.n), dtype=bool)
 
     def add_mines(self):
-        l = [(random.randrange(0, self.n - 1), random.randrange(0, self.n - 1)) for i in range(self.m)]
-        for i in l:
-            self.grid[i] = -1
+        count = 0
+        while count < self.m:
+            l = (random.randrange(0, self.n), random.randrange(0, self.n))
+            if self.grid[l] != -1:
+                self.grid[l] = -1
+                count += 1
 
     # find if the adjacent cell is within dimensions
     def isValid(self, adj):
@@ -85,3 +89,5 @@ class Environment:
 #     cell = Cell(9, 9)
 #     valid = sample.isCellValid(cell.row, cell.col)
 #     print(valid)
+sample = Environment(10, 1)
+pprint(sample.grid)
