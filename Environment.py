@@ -14,6 +14,7 @@ class Cell:
         self.safe_cells_surr = None
         self.covered_neighbours = None
         self.total_neighbours = None
+        self.probability = None
 
 
 # Add m mines to the grid
