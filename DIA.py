@@ -158,106 +158,137 @@ class DI_Agent:
     #                 if neighbour.probability < prob_mine or neighbour.probability is None:
     #                     neighbour.probability = prob_mine
 
-
-
-    KB = d1_list
     # IF cell == 1 finding count value
+    # Substitute cell value as 1 and check for the number of valid possibilities
     def sub_1(self, cell):
-        cell.temp1 = 1
+        list1 = []
+        list0 = []
         # taking only required equation from KB
-        for i in range(0, d1_list):
-            if cell_neighbours not in d1_list[i][0]:
-                d1_list.remove(d1_list[i])
-
-        # sub cell = 1 and reducing the sum of the equation value by 1
-        for i in d1_list:
+        for i in equation_list:
+            count_1 = 0
+            for j in cell_neighbours:
+                if j in i[0]:
+                    count_1 += 1
+            if count_1 == 0:
+                equation_list.remove(i)
+        # sub cell = 0
+        for i in equation_list:
             if cell in i[0]:
                 i[1] -= 1
                 i[0].remove(cell)
-        # repeat process till we find all the constrain equation values, if cell value is 1
+        # repeat process till we find all the constrain equation values, if cell value is 0
         while 1:
             count1 = 0
             count2 = 0
-            for i in range(0,len(d1_list)):
-                if len(d1_list[i][0]) == i[1]:
+            remove = []
+            for i in range(0, len(equation_list)):
+                check = equation_list[i][0]
+                constraints = equation_list
+                if len(equation_list[i][0]) == equation_list[i][1]:
                     count1 += 1
-                    for k in i[0]:
-                        list1.append(k)     # append cells to list1
-                    d1_list.remove(i)
-                elif d1_list[i][1] == 0:
+                    for k in equation_list[i][0]:
+                        list1.append(k)  # append cells to list1
+                    remove.append(equation_list[i][0])
+                elif equation_list[i][1] == 0:
                     count2 += 1
-                    for k in i[0]:
-                        list0.append(k)    # append cells to list0
-                    d1_list.remove(i)
+                    for k in equation_list[i][0]:
+                        list0.append(k)  # append cells to list0
+                    remove.append(equation_list[i][0])
+            for i in equation_list:
+                for j in remove:
+                    if j == i[0]:
+                        equation_list.remove(i)
+
             # updating the equations
-            for i in range(0, len(d1_list)):
+            for i in range(0, len(equation_list)):
                 for j in list0:
-                    if j in d1_list[i][0]:
+                    if j in equation_list[i][0]:
                         count2 += 1
-                        d1_list[i][0].remove(j)
+                        equation_list[i][0].remove(j)
                 for k in list1:
-                    if k in i[0]:
+                    if k in equation_list[i][0]:
                         count1 += 1
-                        d1_list[i][1] -= 1
-                        d1_list[i][0].remove(k)
-            if count1 == 0 or count2 == 0:
+                        equation_list[i][1] -= 1
+                        equation_list[i][0].remove(k)
+
+            if count1 != 0 or count2 != 0:
+                continue
+            else:
                 break
 
-        if len(d1_list) == 0:
+        if len(equation_list) == 0:
             return 1
         else:
             a = 1
-            for i in d1_list:
-                a *= math.factorial(len(i[0]))/(math.factorial(i[1])*math.factorial(len(i[0]) - i[1]))  # nCr formula
+            for i in equation_list:
+                a *= math.factorial(len(i[0])) / (
+                        math.factorial(i[1]) * math.factorial(len(i[0]) - i[1]))  # nCr formula
             return a
 
     KB = d2_list
+# Substitute cell value as 0 and check for the number of valid possibilities
     def sub_0(self, cell):
-        cell.temp1 = 1
+        list1 = []
+        list0 = []
         # taking only required equation from KB
-        for i in d2_list:
-            if cell_neighbours not in i[0]:
-                d2_list.remove(i)
+        for i in equation_list:
+            count_1 = 0
+            for j in cell_neighbours:
+                if j in i[0]:
+                    count_1 += 1
+            if count_1 == 0:
+                equation_list.remove(i)
         # sub cell = 0
-        for i in d2_list:
+        for i in equation_list:
             if cell in i[0]:
                 i[0].remove(cell)
         # repeat process till we find all the constrain equation values, if cell value is 0
         while 1:
             count1 = 0
             count2 = 0
-            for i in range(0,len(d2_list)):
-                if len(d2_list[i][0]) == i[1]:
+            remove = []
+            for i in range(0, len(equation_list)):
+                if len(equation_list[i][0]) == equation_list[i][1]:
                     count1 += 1
-                    for k in i[0]:
-                        list1.append(k)     # append cells to list1
-                    d2_list.remove(i)
-                elif d2_list[i][1] == 0:
+                    for k in equation_list[i][0]:
+                        list1.append(k)  # append cells to list1
+                    remove.append(equation_list[i][0])
+                elif equation_list[i][1] == 0:
                     count2 += 1
-                    for k in i[0]:
-                        list0.append(k)    # append cells to list0
-                    d2_list.remove(i)
-            # updating the equations
-            for i in range(0, len(d2_list)):
-                for j in list0:
-                    if j in d2_list[i][0]:
-                        count2 += 1
-                        d2_list[i][0].remove(j)
-                for k in list1:
-                    if k in i[0]:
-                        count1 += 1
-                        d2_list[i][1] -= 1
-                        d2_list[i][0].remove(k)
-            if count1 == 0 or count2 == 0:
-                break
+                    for k in equation_list[i][0]:
+                        list0.append(k)  # append cells to list0
+                    remove.append(equation_list[i][0])
+            for i in equation_list:
+                for j in remove:
+                    if j == i[0]:
+                        equation_list.remove(i)
 
-        if len(d2_list) == 0:
+            # updating the equations
+            for i in range(0, len(equation_list)):
+                for j in list0:
+                    if j in equation_list[i][0]:
+                        count2 += 1
+                        equation_list[i][0].remove(j)
+                for k in list1:
+                    if k in equation_list[i][0]:
+                        count1 += 1
+                        equation_list[i][1] -= 1
+                        equation_list[i][0].remove(k)
+
+            if count1 != 0 or count2 != 0:
+                continue
+            else:
+                break
+        if len(equation_list) == 0:
             return 1
         else:
             a = 1
-            for i in d2_list:
-                a *= math.factorial(len(i[0]))/(math.factorial(i[1])*math.factorial(len(i[0]) - i[1]))  # nCr formula
+            for i in equation_list:
+                a *= math.factorial(len(i[0])) / (
+                            math.factorial(i[1]) * math.factorial(len(i[0]) - i[1]))  # nCr formula
             return a
+
+    # probability of each cell is the count of cell being a mine divided by total possibilities of it being a mine
     def probability(self):
         for row in range(self.grid_size):
             for column in range(self.grid_size):
