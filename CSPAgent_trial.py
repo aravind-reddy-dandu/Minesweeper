@@ -30,8 +30,8 @@ class CSPAgent:
             self.env.query_cell(random_cell)
         self.render_basic_view()
         while True:
+            self.possible_solutions(self.remove_dups(self.knowledge_base))
             if self.look_over_grid() == 'Finished':
-                print(self.possible_solutions(self.remove_dups(self.knowledge_base)))
                 break
         print(self.mines_exploded)
 
@@ -130,7 +130,7 @@ class CSPAgent:
                 var.is_flagged = True
             elif var_domain[var] == [0]:
                 self.safe_cells.append(var)
-        return(var_domain)
+
 
     def populate_all_cells(self):
         for row in range(self.grid_size):
@@ -192,11 +192,20 @@ class CSPAgent:
                     return True
         return False
 
+    def get_safe_cells(self):
+        if len(self.safe_cells) > 0:
+            safe_cell = self.safe_cells[0]
+            self.safe_cells.remove(safe_cell)
+            return safe_cell
+        else:
+            return False
+
     def open_random_cell(self):
         if not self.have_free_cells():
             return False
-        random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
-            random.randrange(0, len(self.currGrid) - 1)]
+        random_cell = self.get_safe_cells()
+        if not random_cell:
+             random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][random.randrange(0, len(self.currGrid) - 1)]
         while random_cell.is_flagged or (random_cell.curr_value is not None):
             random_cell = self.currGrid[random.randrange(0, len(self.currGrid) - 1)][
                 random.randrange(0, len(self.currGrid) - 1)]
@@ -216,17 +225,17 @@ class CSPAgent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
-        if len(self.graphics.grid) == 0:
-            self.graphics.updateGrid(numeric_grid)
-            self.graphics.Init_view()
-            self.graphics.initVisuals()
-        self.graphics.updateGrid(numeric_grid)
-        pprint(numeric_grid)
+        #if len(self.graphics.grid) == 0:
+         #   self.graphics.updateGrid(numeric_grid)
+          #  self.graphics.Init_view()
+           # self.graphics.initVisuals()
+        #self.graphics.updateGrid(numeric_grid)
+        #pprint(numeric_grid)
 
 
 Store = []
-for i in range(1):
-    env = Environment(10, 0.4)
+for i in range(10):
+    env = Environment(10, 0.3)
     agent = CSPAgent(env)
     agent.play()
     Store.append(agent.mines_exploded)
