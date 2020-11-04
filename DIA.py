@@ -136,8 +136,6 @@ class DI_Agent:
                     numeric_grid[row][column] = 'b'
         pprint(numeric_grid)
 
-
-
     # def probabilities_of_cells(self):
     #     for row in range(self.grid_size):
     #         for column in range(self.grid_size):
@@ -294,7 +292,6 @@ class DI_Agent:
             for column in range(self.grid_size):
                 cell = self.currGrid[row][column]
                 cell.probability = sub_1(cell)/sub_1(cell) + sub_0(cell)
-
 
 
 env = Environment(10, 0.2)
