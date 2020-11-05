@@ -1,12 +1,15 @@
 import random
 from pprint import pprint
+import time
 import math
-import numpy
+import numpy as np
 import pandas as pd
 import itertools
 from Environment import Cell, Environment
 from Graphics_grid import GraphicGrid
 
+# this agent is similar to the CSP  agent but additionally, it chooses an agent whose probability is the minimum when
+# it cannot infer further from the knowledge base equations.
 
 class DI_Agent:
 
@@ -56,7 +59,7 @@ class DI_Agent:
                     elif (cell.total_neighbours - cell.curr_value) - cell.safe_cells_surr == cell.covered_neighbours:
                         self.mark_neighbours_safe(cell)
                         return 'Done'
-                    self.create_condition(cell)
+                    self.create_condition(cell)   # here we also update the probabilities of unexplored cells
         if not self.open_random_cell():
             return 'Finished'
         return 'Done looping'
@@ -87,7 +90,10 @@ class DI_Agent:
                     self.unexplored_cells.remove(cell)
         elif condition and condition not in self.knowledge_base:
             self.knowledge_base.append([condition,constraint_value])
+            # we find the probability of the unexplored cells which are in the knowledge base
+            # whenever we update our knowledge base
             self.probability()
+
 
 
     def possible_solutions(self,knowledge_base):
@@ -96,7 +102,7 @@ class DI_Agent:
             for variable in condition[0]:
                 if variable not in unique_variables:
                     unique_variables.append(variable)
-        max_variables = 18 if len(unique_variables) > 18 else len(unique_variables)
+        max_variables = 30 if len(unique_variables) > 30 else len(unique_variables)
         probable_sol = []
         max_variables_list = random.choices(unique_variables,k = max_variables)
         lst = list(map(list, itertools.product([0, 1], repeat=len(max_variables_list))))
@@ -233,17 +239,21 @@ class DI_Agent:
             self.possible_solutions(self.remove_dups(self.knowledge_base))
             random_cell = self.get_safe_cells()
             self.render_basic_view()
-            # we have to write the logic for choosing random cell with probability
+            # we choose a random cell with probability
             if not random_cell:
                 prob = 2
+                # self.probability()
+                # prob1 = []
                 for cell in self.unexplored_cells:
                     if cell.probability != None:
                         min_cell = cell
                         if min_cell.probability < prob:
                             prob = min_cell.probability
+                            # prob1.append(prob)
                             random_cell = min_cell
                     else:
                         continue
+                # print(prob1)
             if not random_cell:
                     random_cell = random.choice(self.unexplored_cells)
 
@@ -267,18 +277,7 @@ class DI_Agent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
-
-
-    # prob = 2  #for initialization
-    # for row in range(self.grid_size):
-    #     for column in range(self.grid_size):
-    #         cell = self.currGrid[row][column]
-    #         if cell.probability is not None and cell.probability is not 0:
-    #             if cell.probability <= prob:
-    #                 prob = cell.probability
-    #                 random_cell = cell
-
-
+        # pprint(numeric_grid)
 
     # IF cell == 1 finding count value
     # Substitute cell value as 1 and check for the number of valid possibilities
@@ -289,6 +288,7 @@ class DI_Agent:
         cell_neighbours = []
         row = cell.row
         col = cell.col
+        # finding the neighbours of the cell and appending those objects in cell_neighbours list
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
                 if (i == 0 and j == 0) or not self.isCellValid(row + i, col + j):
@@ -308,7 +308,7 @@ class DI_Agent:
             if cell in i[0]:
                 i[1] -= 1
                 i[0].remove(cell)
-        # repeat process till we find all the constrain equation values, if cell value is 0
+        # repeat process till we find all the constrain equation values, when the cell value is 1
         while 1:
             count1 = 0
             count2 = 0
@@ -346,16 +346,18 @@ class DI_Agent:
                 continue
             else:
                 break
-
+        # if we get all the constraint values in the equations of the knowledge base, when cell is a mine
+        # then only 1 combination is possible
         if len(equation_list) == 0:
             return 1
-        else:
+        else:    # we find all possible combinations
             a = 1
             for i in equation_list:
                 a *= math.factorial(len(i[0])) / (math.factorial(i[1]) * math.factorial(len(i[0]) - i[1]))  # nCr formula
             return a
 
 # Substitute cell value as 0 and check for the number of valid possibilities
+
     def sub_0(self, cell, kb):
         equation_list = kb
         list1 = []
@@ -363,6 +365,7 @@ class DI_Agent:
         cell_neighbours = []
         row = cell.row
         col = cell.col
+        # finding the neighbours of the cell and appending those objects in cell_neighbours list
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
                 if (i == 0 and j == 0) or not self.isCellValid(row + i, col + j):
@@ -381,7 +384,7 @@ class DI_Agent:
         for i in equation_list:
             if cell in i[0]:
                 i[0].remove(cell)
-        # repeat process till we find all the constrain equation values, if cell value is 0
+        # repeat process till we find all the constrain equation values, when cell value is 0
         while 1:
             count1 = 0
             count2 = 0
@@ -418,38 +421,49 @@ class DI_Agent:
                 continue
             else:
                 break
+        # if we get all the constraint values in the equations of the knowledge base, when cell is not a mine
+        # then only 1 combination is possible
         if len(equation_list) == 0:
             return 1
-        else:
+        else:               # we find all possible combinations
             a = 1
             for i in equation_list:
                 a *= math.factorial(len(i[0])) / (math.factorial(i[1]) * math.factorial(len(i[0]) - i[1]))  # nCr formula
             return a
 
-    # probability of each cell is the count of cell being a mine divided by total possibilities of it being a mine
+    # probability of each cell is the count of cell being a mine divided by total possibilities (is mine and not a mine)
     def probability(self):
         conditions = [condition[0] for condition in self.knowledge_base]
         for cell in self.unexplored_cells:
             if cell in conditions:
-                    cell.probability = self.sub_1(cell, self.knowledge_base) / (self.sub_1(cell, self.knowledge_base) + self.sub_0(cell , self.knowledge_base))
-                # p1 = self.sub_1(cell, self.knowledge_base)
-                # p0 = self.sub_0(cell, self.knowledge_base)
-                # a = cell.probability
+                cell.probability = self.sub_1(cell, self.knowledge_base) / (self.sub_1(cell, self.knowledge_base) + self.sub_0(cell, self.knowledge_base))
+
+
 
 # env = Environment(10, 0.3)
 # agent = DI_Agent(env)
 # agent.play()
-avg = []
-mine_density = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-for i in range(9):
-  Store = []
-  print("-------------------------------",i+1)
-  for j in range(20):
-    env = Environment(10, mine_density[i])
-    agent = DI_Agent(env)
-    agent.play()
-    Store.append(agent.mines_exploded)
-  avg.append(numpy.average(Store))
 
-print("-------------------------------")
-print(dict(zip(mine_density, avg)))
+
+# Driver code to test
+density_store = {}
+# Iterating for range of mine density
+for d in range(1, 10, 1):
+    density = d/10
+    Store = {'bombs': [], 'time': []}
+    for i in range(5):
+        start = time.process_time()
+        env = Environment(10, density)
+        agent = DI_Agent(env)
+        agent.play()
+        Store['bombs'].append(agent.mines_exploded)
+        Store['time'].append(time.process_time() - start)
+
+    print('Average number of bombs exploded is ' + str(np.average(Store['bombs'])))
+    print('Average time taken ' + str(np.average(Store['time'])))
+    density_store[density] = str(np.average(Store['bombs']))
+print(density_store)
+for key in density_store.keys():
+    print(str(key) + ',' + str(density_store[key]))
+
+
