@@ -2,7 +2,10 @@ import random
 from pprint import pprint
 import math
 import numpy
+import pandas as pd
+import itertools
 from Environment import Cell, Environment
+from Graphics_grid import GraphicGrid
 
 
 class DI_Agent:
@@ -12,26 +15,31 @@ class DI_Agent:
         self.grid_size = env.grid.shape[0]
         self.currGrid = [[Cell(j, i) for i in range(self.grid_size)] for j in range(self.grid_size)]
         self.mines_exploded = 0
-        self.mine_variables = list()
-        self.non_mine_variables = list()
+        self.safe_cells = list()
+        self.mine_cells = list()
+        self.graphics = GraphicGrid([])
         self.knowledge_base = list()
+        self.unexplored_cells = list()
+
 
     def play(self):
-        random_cell = self.currGrid[random.randrange(0, len(self.currGrid) )][
-            random.randrange(0, len(self.currGrid))]
+        self.populate_unexplored_cells()
+        random_cell = random.choice(self.unexplored_cells)
         self.env.query_cell(random_cell)
-        while random_cell.is_mine:
-            random_cell.is_mine = False
-            random_cell.curr_value = None
-            random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
-                random.randrange(0, len(self.currGrid))]
-            self.env.query_cell(random_cell)
+        self.unexplored_cells.remove(random_cell)
         self.render_basic_view()
+        self.create_condition(random_cell)
         while True:
             if self.look_over_grid() == 'Finished':
                 break
-
         print(self.mines_exploded)
+
+    def remove_dups(self,list):
+        res = []
+        for i in list:
+            if i not in res:
+                res.append(i)
+        return res
 
     def look_over_grid(self):
         self.populate_all_cells()
@@ -39,19 +47,17 @@ class DI_Agent:
         for row in range(self.grid_size):
             for column in range(self.grid_size):
                 cell = self.currGrid[row][column]
-                self.populate_cell(cell)
+                #self.populate_cell(cell)
                 if (cell.curr_value is not None) and not cell.is_flagged:
                     if cell.curr_value - cell.mines_surrounding == cell.covered_neighbours:
                         if cell.curr_value != 0 and cell.covered_neighbours != 0:
-                            self.create_condition(cell)
                             self.flag_neighbours(cell)
-                            self.probability()
                             return 'Done'
                     elif (cell.total_neighbours - cell.curr_value) - cell.safe_cells_surr == cell.covered_neighbours:
                         self.mark_neighbours_safe(cell)
                         return 'Done'
+                    self.create_condition(cell)
         if not self.open_random_cell():
-            print(self.knowledge_base)
             return 'Finished'
         return 'Done looping'
 
@@ -69,15 +75,82 @@ class DI_Agent:
                     self.populate_cell(cell1)
                     if cell1.curr_value is not None:
                         continue
-
-                    if self.flag_neighbours(cell1):
+                    if cell1.is_flagged or cell1.is_mine:
                         constraint_value -= 1
                         continue
+                    else:
+                        condition.append(cell1)
+        if len(condition) == constraint_value:
+            for cell in condition:
+                cell.is_flagged = True
+                if cell in self.unexplored_cells:
+                    self.unexplored_cells.remove(cell)
+        elif condition and condition not in self.knowledge_base:
+            self.knowledge_base.append([condition,constraint_value])
+            self.probability()
 
-                    neighbour = self.mark_neighbours_safe(cell1)
-                    condition.append(neighbour)
 
-        self.knowledge_base.append([condition, constraint_value])
+    def possible_solutions(self,knowledge_base):
+        unique_variables = []
+        for condition in knowledge_base:
+            for variable in condition[0]:
+                if variable not in unique_variables:
+                    unique_variables.append(variable)
+        max_variables = 13 if len(unique_variables) > 13 else len(unique_variables)
+        probable_sol = []
+        max_variables_list = random.choices(unique_variables,k = max_variables)
+        lst = list(map(list, itertools.product([0, 1], repeat=len(max_variables_list))))
+        for assignment in lst:
+            flag = 0
+            sat = 0
+            for condition in knowledge_base:
+                sum = condition[1]
+                sol = 0
+                j = 0
+                f = 0
+                for var in condition[0]:
+                    j += 1
+                    if var in max_variables_list:
+                        i = max_variables_list.index(var)
+                        sol += assignment[i]
+                    else:
+                        break;
+                else:
+                    if j == len(condition[0]):
+                        sat += 1
+                        if (sol != sum):
+                            break;
+                        if (sol == sum):
+                            flag += 1
+            if flag == sat:
+                probable_sol.append(assignment)
+        probable_sol_df = pd.DataFrame(probable_sol)
+        domain = []
+        for col in probable_sol_df:
+            domain.append(probable_sol_df[col].unique().tolist())
+        var_domain = dict(zip(max_variables_list, domain))
+        for var in var_domain:
+            if var_domain[var] == [1]:
+                self.mine_cells.append(var)
+                if var in self.unexplored_cells:
+                    self.unexplored_cells.remove(var)
+                var.is_flagged = True
+            elif var_domain[var] == [0]:
+                self.safe_cells.append(var)
+        for condition in knowledge_base:
+            for safe_cell in self.safe_cells:
+                if safe_cell in condition[0]:
+                    condition[0].remove(safe_cell)
+            for mine_cell in self.mine_cells:
+                if mine_cell in condition[0]:
+                    condition[0].remove(mine_cell)
+                    condition[1] -= 1
+
+
+    def populate_unexplored_cells(self):
+        for row in range(self.grid_size):
+            for column in range(self.grid_size):
+                self.unexplored_cells.append(self.currGrid[row][column])
 
     def populate_all_cells(self):
         for row in range(self.grid_size):
@@ -118,6 +191,8 @@ class DI_Agent:
                     continue
                 neighbour = self.currGrid[cell.row + i][cell.col + j]
                 if not neighbour.is_flagged and neighbour.curr_value is None:
+                    if neighbour in self.unexplored_cells:
+                        self.unexplored_cells.remove(neighbour)
                     self.env.query_cell(neighbour)
         self.render_basic_view()
 
@@ -129,6 +204,8 @@ class DI_Agent:
                 neighbour = self.currGrid[cell.row + i][cell.col + j]
                 if neighbour.curr_value is None:
                     neighbour.is_flagged = True
+                    if neighbour in self.unexplored_cells:
+                        self.unexplored_cells.remove(neighbour)
         self.render_basic_view()
 
     def have_free_cells(self):
@@ -139,30 +216,45 @@ class DI_Agent:
                     return True
         return False
 
-    # we choose a random cell with a probability now
+    def get_safe_cells(self):
+        if len(self.safe_cells) > 0:
+            safe_cell = self.safe_cells[0]
+            self.safe_cells.remove(safe_cell)
+            return safe_cell
+        else:
+            return False
+
     def open_random_cell(self):
         if not self.have_free_cells():
             return False
+        random_cell = self.get_safe_cells()
 
-        # prob = 2  #for initialization
-        # for row in range(self.grid_size):
-        #     for column in range(self.grid_size):
-        #         cell = self.currGrid[row][column]
-        #         if cell.probability is not None and cell.probability is not 0:
-        #             if cell.probability <= prob:
-        #                 prob = cell.probability
-        #                 random_cell = cell
+        if not random_cell:
+            self.possible_solutions(self.remove_dups(self.knowledge_base))
+            random_cell = self.get_safe_cells()
+            self.render_basic_view()
+            # we have to write the logic for choosing random cell with probability
+            if not random_cell:
+                prob = 2
+                for cell in self.unexplored_cells:
+                    if cell.probability != None:
+                        min_cell = cell
+                        if min_cell.probability < prob:
+                            prob = min_cell.probability
+                            random_cell = min_cell
+                    else:
+                        continue
+                if not random_cell:
+                    random_cell = random.choice(self.unexplored_cells)
 
-        random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
-            random.randrange(0, len(self.currGrid))]
-        while random_cell.is_flagged or (random_cell.curr_value is not None):
-            random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
-                random.randrange(0, len(self.currGrid))]
-
+        if random_cell in self.unexplored_cells:
+            self.unexplored_cells.remove(random_cell)
         self.env.query_cell(random_cell)
         if random_cell.is_mine:
             self.mines_exploded += 1
             random_cell.is_flagged = True
+        elif (random_cell.curr_value is not None) and not random_cell.is_flagged:
+            self.create_condition(random_cell)
         self.render_basic_view()
         return True
 
@@ -175,7 +267,18 @@ class DI_Agent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
-        # pprint(numeric_grid)
+
+
+    # prob = 2  #for initialization
+    # for row in range(self.grid_size):
+    #     for column in range(self.grid_size):
+    #         cell = self.currGrid[row][column]
+    #         if cell.probability is not None and cell.probability is not 0:
+    #             if cell.probability <= prob:
+    #                 prob = cell.probability
+    #                 random_cell = cell
+
+
 
     # IF cell == 1 finding count value
     # Substitute cell value as 1 and check for the number of valid possibilities
@@ -327,14 +430,31 @@ class DI_Agent:
 
     # probability of each cell is the count of cell being a mine divided by total possibilities of it being a mine
     def probability(self):
-        for row in range(self.grid_size):
-            for column in range(self.grid_size):
-                cell = self.currGrid[row][column]
-                cell.probability = self.sub_1(cell, self.knowledge_base) / (self.sub_1(cell, self.knowledge_base) + self.sub_0(cell , self.knowledge_base))
+        for cell in self.unexplored_cells:
+            i = 0
+            for condition in self.knowledge_base:
+                i += 1
+                if not cell in condition[0] and i != len(self.knowledge_base):
+                    break
+            else:
+                if len(self.knowledge_base) > 0:
+                    cell.probability = self.sub_1(cell, self.knowledge_base) / (self.sub_1(cell, self.knowledge_base) + self.sub_0(cell , self.knowledge_base))
                 # p1 = self.sub_1(cell, self.knowledge_base)
                 # p0 = self.sub_0(cell, self.knowledge_base)
                 # a = cell.probability
 
-env = Environment(10, 0.3)
-agent = DI_Agent(env)
-agent.play()
+# env = Environment(10, 0.3)
+# agent = DI_Agent(env)
+# agent.play()
+avg = []
+for i in range(1,10):
+  Store = []
+  for j in range(5):
+    env = Environment(10, 0.1*i)
+    agent = DI_Agent(env)
+    agent.play()
+    Store.append(agent.mines_exploded)
+  avg.append(numpy.average(Store))
+
+print("-------------------------------")
+print(dict(zip(numpy.arange(0.1, 1, 0.1), avg)))
