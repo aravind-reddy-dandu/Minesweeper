@@ -85,24 +85,28 @@ class CSPAgent:
                 cell.is_flagged = True
                 if cell in self.unexplored_cells:
                     self.unexplored_cells.remove(cell)
-        elif condition and condition not in self.knowledge_base:
+        elif condition and condition not in [condition[0] for condition in self.knowledge_base] and constraint_value > 0:
             self.knowledge_base.append([condition,constraint_value])
+        elif condition and constraint_value == 0:
+            for var in condition:
+                self.safe_cells.append(var)
 
 
-    def possible_solutions(self,knowledge_base):
+    def possible_solutions(self):
         unique_variables = []
-        for condition in knowledge_base:
+        self.knowledge_base = self.remove_dups(self.knowledge_base)
+        for condition in self.knowledge_base:
             for variable in condition[0]:
                 if variable not in unique_variables:
                     unique_variables.append(variable)
-        max_variables = 18 if len(unique_variables) > 18 else len(unique_variables)
+        max_variables = 13 if len(unique_variables) > 13 else len(unique_variables)
         probable_sol = []
         max_variables_list = random.choices(unique_variables,k = max_variables)
         lst = list(map(list, itertools.product([0, 1], repeat=len(max_variables_list))))
         for assignment in lst:
             flag = 0
             sat = 0
-            for condition in knowledge_base:
+            for condition in self.knowledge_base:
                 sum = condition[1]
                 sol = 0
                 j = 0
@@ -136,7 +140,7 @@ class CSPAgent:
                 var.is_flagged = True
             elif var_domain[var] == [0]:
                 self.safe_cells.append(var)
-        for condition in knowledge_base:
+        for condition in self.knowledge_base:
             for safe_cell in self.safe_cells:
                 if safe_cell in condition[0]:
                     condition[0].remove(safe_cell)
@@ -228,7 +232,7 @@ class CSPAgent:
             return False
         random_cell = self.get_safe_cells()
         if not random_cell:
-            self.possible_solutions(self.remove_dups(self.knowledge_base))
+            self.possible_solutions()
             random_cell = self.get_safe_cells()
             self.render_basic_view()
             if not random_cell:
@@ -253,24 +257,24 @@ class CSPAgent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
-        if len(self.graphics.grid) == 0:
-            self.graphics.updateGrid(numeric_grid)
-            self.graphics.Init_view()
-            self.graphics.initVisuals()
-        self.graphics.updateGrid(numeric_grid)
+        #if len(self.graphics.grid) == 0:
+         #   self.graphics.updateGrid(numeric_grid)
+         #   self.graphics.Init_view()
+         #   self.graphics.initVisuals()
+        #self.graphics.updateGrid(numeric_grid)
         #pprint(numeric_grid)
 
 avg = []
 mine_density = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 for i in range(1,10):
   Store = []
-  #print("-------------------------------",i)
-  for j in range(20):
+  print("-------------------------------",i)
+  for j in range(10):
     env = Environment(10, mine_density[i])
     agent = CSPAgent(env)
     agent.play()
     Store.append(agent.mines_exploded)
   avg.append(numpy.average(Store))
 
-#print("-------------------------------")
+print("-------------------------------")
 print(dict(zip(mine_density, avg)))
