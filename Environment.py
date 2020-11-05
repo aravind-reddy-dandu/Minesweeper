@@ -24,6 +24,7 @@ class Cell:
         self.covered_neighbours = None
         # totalneighbours: Total number of neighbours available for a Cell. Useful for cells in edges of grid
         self.total_neighbours = None
+        self.probability = None
 
 
 class Environment:

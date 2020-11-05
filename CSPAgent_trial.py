@@ -95,7 +95,7 @@ class CSPAgent:
             for variable in condition[0]:
                 if variable not in unique_variables:
                     unique_variables.append(variable)
-        max_variables = 13 if len(unique_variables) > 13 else len(unique_variables)
+        max_variables = 18 if len(unique_variables) > 18 else len(unique_variables)
         probable_sol = []
         max_variables_list = random.choices(unique_variables,k = max_variables)
         lst = list(map(list, itertools.product([0, 1], repeat=len(max_variables_list))))
@@ -263,7 +263,8 @@ class CSPAgent:
 avg = []
 for i in range(1,10):
   Store = []
-  for j in range(20):
+  print("-------------------------------",i)
+  for j in range(10):
     env = Environment(10, 0.1*i)
     agent = CSPAgent(env)
     agent.play()
