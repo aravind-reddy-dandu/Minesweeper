@@ -8,7 +8,7 @@ from Environment import Cell, Environment
 from Graphics_grid import GraphicGrid
 
 
-class DI_Agent:
+class TI_Agent:
 
     def __init__(self, env):
         self.env = env
@@ -228,7 +228,6 @@ class DI_Agent:
         if not self.have_free_cells():
             return False
         random_cell = self.get_safe_cells()
-
         if not random_cell:
             self.possible_solutions(self.remove_dups(self.knowledge_base))
             random_cell = self.get_safe_cells()
@@ -244,8 +243,11 @@ class DI_Agent:
                             random_cell = min_cell
                     else:
                         continue
+                else:
+                    if not random_cell:
+                        random_cell = self.most_occurred()
             if not random_cell:
-                    random_cell = random.choice(self.unexplored_cells)
+                random_cell = random.choice(self.unexplored_cells)
 
         if random_cell in self.unexplored_cells:
             self.unexplored_cells.remove(random_cell)
@@ -436,6 +438,18 @@ class DI_Agent:
                 # p0 = self.sub_0(cell, self.knowledge_base)
                 # a = cell.probability
 
+    #Triple improved agent
+    def most_occurred(self):
+        conditions = [condition[0] for condition in self.knowledge_base]
+        random_cell = False
+        conditions = list(itertools.chain.from_iterable(conditions))
+        max = 0
+        for cell in self.unexplored_cells:
+            if conditions.count(cell) > max:
+                max = conditions.count(cell)
+                random_cell = cell
+        return random_cell
+
 # env = Environment(10, 0.3)
 # agent = DI_Agent(env)
 # agent.play()
@@ -446,7 +460,7 @@ for i in range(9):
   print("-------------------------------",i+1)
   for j in range(20):
     env = Environment(10, mine_density[i])
-    agent = DI_Agent(env)
+    agent = TI_Agent(env)
     agent.play()
     Store.append(agent.mines_exploded)
   avg.append(numpy.average(Store))
