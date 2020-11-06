@@ -348,6 +348,11 @@ class DI_Agent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
+        if len(self.graphics.grid) == 0:
+          self.graphics.updateGrid(numeric_grid)
+          self.graphics.Init_view()
+          self.graphics.initVisuals()
+        self.graphics.updateGrid(numeric_grid)
 
     # IF cell == 1 finding count value
     # Substitute cell value as 1 and check for the number of valid possibilities
