@@ -32,7 +32,7 @@ how a sample Environment internal grid looks like. It is represented as
 basic 2 $\times$ 2 matrix. Here -1 represents a mine and remaining cells
 represent respective number of mines surrounding.
 
-![Sample Environment Grid structure](Env.png){#fig}
+![Sample Environment Grid structure](Documents/Tex_Images/Env.png){#fig}
 
 A Cell class is created to store all the required cell attributes.
 
@@ -96,7 +96,7 @@ the Minesweeper with mine density 0.2 and dimension 20 $\times$ 20
 
 -   Grey colored cells are yet to be opened/flagged
 
-![Representation of a 20 $\times$ 20 Grid](Graphics.png){#fig}
+![Representation of a 20 $\times$ 20 Grid](Documents/Tex_Images/Graphics.png){#fig}
 
 Basic Agent
 ===========
@@ -122,11 +122,11 @@ neighbours if deemed safe or flags all neighbours if deemed unsafe.
 ![Average number of mines exploded by Basic
 Agent](Basic_Agent.png){#fig}
 
-![Average score of Basic Agent](Basic_Agent_scores.png){#fig}
+![Average score of Basic Agent](Documents/Tex_Images/Basic_Agent_scores.png){#fig}
 
 This is plotted in next section
 
-![Average score of Basic/Naive Agent](Basic-agent-performance.png){#fig}
+![Average score of Basic/Naive Agent](Documents/Tex_Images/Basic-agent-performance.png){#fig}
 
 Improved Agent - CSP
 ====================
@@ -161,7 +161,7 @@ Metrics of CSP agent working on a 20\*20 maze with different mine
 densities.
 
 ![Average score of CSP Agent in comparison with Naive
-agent](Basic-vs-CSP_Performance.png){#fig}
+agent](Documents/Tex_Images/Basic-vs-CSP_Performance.png){#fig}
 
 The performance metrics is within our intuitive observation although
 there is no huge difference between naive and CSP agent. Since we are
@@ -185,9 +185,9 @@ cell(the one with 2 marked on it) leaving only one mine where in-fact
 there should be two. Here the pseudo knowledge base is broken. So CSP
 determines that the target cell is in fact a mine.
 
-![Trying to solve a cell](InkedCSP_seq_1_LI.jpg){#fig}
+![Trying to solve a cell](Documents/Tex_Images/InkedCSP_seq_1_LI.jpg){#fig}
 
-![Got a contradiction and flagged it](InkedCSP_seq_2_LI.jpg){#fig}
+![Got a contradiction and flagged it](Documents/Tex_Images/InkedCSP_seq_2_LI.jpg){#fig}
 
 Logic in Code Walk-through
 --------------------------
@@ -247,7 +247,7 @@ Metrics of Double improved agent working on a 20\*20 maze with different
 mine densities.
 
 ![Average score of Double Improved Agent in comparison with basic and
-CSP agents](DIA_performance.png){#fig}
+CSP agents](Documents/Tex_Images/DIA_performance.png){#fig}
 
 The performance metrics is within our intuitive observation. Since we
 are maintaining a knowledge base here, dealing with grids over 40 \* 40
@@ -273,7 +273,7 @@ Metrics of Triple improved agent working on a 20\*20 maze with different
 mine densities.
 
 ![Average score of Triple Improved Agent in comparison with Double
-Improved, basic and CSP agents](All_performance.png){#fig}
+Improved, basic and CSP agents](Documents/Tex_Images/All_performance.png){#fig}
 
 The performance metrics is within our intuitive observation. As
 projected in graphs Triple Improved agent out performs other agents with
