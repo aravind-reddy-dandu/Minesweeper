@@ -13,7 +13,7 @@ Abstract: |
 
   -   Triple Improved Agent
 
-title: 'MineSweeper: Inference-Informed Action CS 520'
+Title: 'MineSweeper: Inference-Informed Action CS 520'
 ---
 
 Creating Environment for Minesweeper
