@@ -21,7 +21,6 @@ class CSPAgent:
         self.knowledge_base = list()
         self.unexplored_cells = list()
 
-
     def play(self):
         self.populate_unexplored_cells()
         random_cell = random.choice(self.unexplored_cells)
@@ -34,7 +33,7 @@ class CSPAgent:
                 break
         print(self.mines_exploded)
 
-    def remove_dups(self,list):
+    def remove_dups(self, list):
         res = []
         for i in list:
             if i not in res:
@@ -47,7 +46,7 @@ class CSPAgent:
         for row in range(self.grid_size):
             for column in range(self.grid_size):
                 cell = self.currGrid[row][column]
-                #self.populate_cell(cell)
+                # self.populate_cell(cell)
                 if (cell.curr_value is not None) and not cell.is_flagged:
                     if cell.curr_value - cell.mines_surrounding == cell.covered_neighbours:
                         if cell.curr_value != 0 and cell.covered_neighbours != 0:
@@ -86,10 +85,9 @@ class CSPAgent:
                 if cell in self.unexplored_cells:
                     self.unexplored_cells.remove(cell)
         elif condition and condition not in self.knowledge_base:
-            self.knowledge_base.append([condition,constraint_value])
+            self.knowledge_base.append([condition, constraint_value])
 
-
-    def possible_solutions(self,knowledge_base):
+    def possible_solutions(self, knowledge_base):
         unique_variables = []
         for condition in knowledge_base:
             for variable in condition[0]:
@@ -97,7 +95,7 @@ class CSPAgent:
                     unique_variables.append(variable)
         max_variables = 18 if len(unique_variables) > 18 else len(unique_variables)
         probable_sol = []
-        max_variables_list = random.choices(unique_variables,k = max_variables)
+        max_variables_list = random.choices(unique_variables, k=max_variables)
         lst = list(map(list, itertools.product([0, 1], repeat=len(max_variables_list))))
         for assignment in lst:
             flag = 0
@@ -144,7 +142,6 @@ class CSPAgent:
                 if mine_cell in condition[0]:
                     condition[0].remove(mine_cell)
                     condition[1] -= 1
-
 
     def populate_unexplored_cells(self):
         for row in range(self.grid_size):
@@ -253,24 +250,24 @@ class CSPAgent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
-        #if len(self.graphics.grid) == 0:
-         #   self.graphics.updateGrid(numeric_grid)
-          #  self.graphics.Init_view()
-           # self.graphics.initVisuals()
-        #self.graphics.updateGrid(numeric_grid)
-        #pprint(numeric_grid)
+        # if len(self.graphics.grid) == 0:
+        #   self.graphics.updateGrid(numeric_grid)
+        #  self.graphics.Init_view()
+        # self.graphics.initVisuals()
+        # self.graphics.updateGrid(numeric_grid)
+        # pprint(numeric_grid)
+
 
 avg = []
-for i in range(1,10):
-  Store = []
-  print("-------------------------------",i)
-  for j in range(10):
-    env = Environment(10, 0.1*i)
-    agent = CSPAgent(env)
-    agent.play()
-    Store.append(agent.mines_exploded)
-  avg.append(numpy.average(Store))
+for i in range(1, 10):
+    Store = []
+    print("-------------------------------", i)
+    for j in range(10):
+        env = Environment(10, 0.1 * i)
+        agent = CSPAgent(env)
+        agent.play()
+        Store.append(agent.mines_exploded)
+    avg.append(numpy.average(Store))
 
 print("-------------------------------")
 print(dict(zip(numpy.arange(0.1, 1, 0.1), avg)))
-

@@ -26,6 +26,11 @@ class Cell:
         self.total_neighbours = None
         self.probability = None
 
+    # def __eq__(self, o: object) -> bool:
+    #     if isinstance(o, Cell):
+    #         return (self.row == o.row) and (self.col == o.col)
+    #     return False
+
 
 class Environment:
     def __init__(self, dimension, density):
@@ -102,6 +107,7 @@ class Environment:
         # If queried cell is mine, flagging as mine
         if self.grid[query_cell.row][query_cell.col] == -1:
             query_cell.is_mine = True
+            query_cell.curr_value = None
 
     def isCellValid(self, row: int, col: int):
         return (row >= 0) and (row < len(self.grid)) and (col >= 0) and (col < len(self.grid[0]))

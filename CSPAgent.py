@@ -27,6 +27,12 @@ class CSPAgent:
     def play(self):
         self.populate_unexplored_cells()
         random_cell = random.choice(self.unexplored_cells)
+        while random_cell.is_mine:
+            random_cell.is_mine = False
+            random_cell.curr_value = None
+            random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
+                random.randrange(0, len(self.currGrid))]
+            self.env.query_cell(random_cell)
         self.env.query_cell(random_cell)
         if random_cell.is_mine:
             random_cell.is_flagged = True
@@ -137,6 +143,7 @@ class CSPAgent:
         for key in unique_variables.keys():
             if unique_variables[key] > 1:
                 interesting_vars.append(key)
+        flag = False
         for var in interesting_vars:
             fake_vals = [0, 1]
             if var.is_flagged:
@@ -159,6 +166,7 @@ class CSPAgent:
                     # if not self.validate_kb(dup_kb):
                     if fake_val == 0:
                         var.is_flagged = True
+                        flag = True
                         self.mine_cells.append(var)
                         if var in self.unexplored_cells:
                             self.unexplored_cells.remove(var)
@@ -168,6 +176,7 @@ class CSPAgent:
                     else:
                         if var not in self.safe_cells:
                             self.safe_cells.append(var)
+                            flag = True
                         # self.env.query_cell(var)
                         if self.env.grid[var.row][var.col] == -1:
                             print("wrongly predicted")
@@ -183,6 +192,7 @@ class CSPAgent:
                 if mine_cell in condition[0]:
                     condition[0].remove(mine_cell)
                     condition[1] -= 1
+        return flag
 
     def is_kb_solvable(self, kb):
         for index, equation in enumerate(kb):
@@ -223,7 +233,7 @@ class CSPAgent:
                         equation[1] = equation[1] - 1
 
     def possible_solutions_old(self):
-        self.substitute_values()
+        self.substitute_values(self.knowledge_base)
         unique_variables = []
         self.knowledge_base = self.remove_dups(self.knowledge_base)
         for condition in self.knowledge_base:
@@ -365,7 +375,9 @@ class CSPAgent:
             return False
         random_cell = self.get_safe_cells()
         if not random_cell:
-            self.possible_solutions()
+            flag = self.possible_solutions()
+            while flag:
+                flag = self.possible_solutions()
             random_cell = self.get_safe_cells()
             self.render_basic_view()
             if not random_cell:
@@ -393,11 +405,11 @@ class CSPAgent:
                     numeric_grid[row][column] = 'f'
                 if self.currGrid[row][column].is_mine:
                     numeric_grid[row][column] = 'b'
-        if len(self.graphics.grid) == 0:
-          self.graphics.updateGrid(numeric_grid)
-          self.graphics.Init_view()
-          self.graphics.initVisuals()
-        self.graphics.updateGrid(numeric_grid)
+        # if len(self.graphics.grid) == 0:
+        #   self.graphics.updateGrid(numeric_grid)
+        #   self.graphics.Init_view()
+        #   self.graphics.initVisuals()
+        # self.graphics.updateGrid(numeric_grid)
         # pprint(numeric_grid)
 
     # def validate_kb(self, kb):
@@ -445,9 +457,9 @@ flag_store = {}
 for d in [4]:
     density = d / 10
     Store = {'bombs': [], 'time': [], 'flagged': []}
-    for i in range(1):
+    for i in range(20):
         start = time.process_time()
-        env = Environment(20, density)
+        env = Environment(10, density)
         mines = env.m
         agent = CSPAgent(env)
         agent.play()

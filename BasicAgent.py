@@ -1,4 +1,5 @@
 import random
+import sys
 from pprint import pprint
 import time
 
@@ -200,21 +201,28 @@ class NaiveAgent:
 
 # Driver code to test
 density_store = {}
+flag_store = {}
 # Iterating for range of mine density
-for d in range(1, 10, 1):
-    density = d/10
-    Store = {'bombs': [], 'time': []}
-    for i in range(50):
+for d in [4]:
+    density = d / 10
+    Store = {'bombs': [], 'time': [], 'flagged': []}
+    for i in range(1):
         start = time.process_time()
-        env = Environment(10, density)
+        env = Environment(100, density)
+        mines = env.m
         agent = NaiveAgent(env)
         agent.play()
         Store['bombs'].append(agent.mines_exploded)
+        Store['flagged'].append((mines - agent.mines_exploded)/mines)
         Store['time'].append(time.process_time() - start)
 
     print('Average number of bombs exploded is ' + str(np.average(Store['bombs'])))
     print('Average time taken ' + str(np.average(Store['time'])))
+    print('Average score ' + str(np.average(Store['flagged'])))
     density_store[density] = str(np.average(Store['bombs']))
+    flag_store[density] = str(np.average(Store['flagged']))
 print(density_store)
 for key in density_store.keys():
     print(str(key) + ',' + str(density_store[key]))
+for key in flag_store.keys():
+    print(str(key) + ',' + str(flag_store[key]))
