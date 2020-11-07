@@ -419,8 +419,21 @@ class CSPAgent:
                 flag = self.possible_solutions()
             random_cell = self.get_safe_cells()
             self.render_basic_view()
+            # logic for choosing random cell with probability
             if not random_cell:
-                # Initialize a random cell
+                prob = 2
+                for cell in self.unexplored_cells:
+                    if cell.probability != None:
+                        min_cell = cell
+                        if min_cell.probability < prob:
+                            prob = min_cell.probability
+                            random_cell = min_cell
+                    else:
+                        continue
+                else:
+                    if not random_cell:
+                        random_cell = self.most_occurred()
+            if not random_cell:
                 random_cell = random.choice(self.unexplored_cells)
                 while random_cell.is_flagged or (random_cell.curr_value is not None):
                     random_cell = self.currGrid[random.randrange(0, len(self.currGrid))][
@@ -464,6 +477,178 @@ class CSPAgent:
         # PPrint is impacting performance a lot
         pprint(numeric_grid)
 
+    # IF cell == 1 finding count value
+    # Substitute cell value as 1 and check for the number of valid possibilities
+    def sub_1(self, cell, kb):
+        equation_list = kb
+        list1 = []
+        list0 = []
+        cell_neighbours = []
+        row = cell.row
+        col = cell.col
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                if (i == 0 and j == 0) or not self.isCellValid(row + i, col + j):
+                    continue
+                neighbour = self.currGrid[row + i][col + j]
+                cell_neighbours.append(neighbour)
+        # taking only required equation from KB
+        for i in equation_list:
+            count_1 = 0
+            for j in cell_neighbours:
+                if j in i[0]:
+                    count_1 += 1
+            if count_1 == 0:
+                equation_list.remove(i)
+        # substitute cell as 1 in the equations of the knowledge base
+        for i in equation_list:
+            if cell in i[0]:
+                i[1] -= 1
+                i[0].remove(cell)
+        # repeat process till we find all the constrain equation values, if cell value is 0
+        while 1:
+            count1 = 0
+            count2 = 0
+            remove = []
+            for i in range(0, len(equation_list)):
+                # finding other cell values when given cell is assumed to be a mine
+                if len(equation_list[i][0]) == equation_list[i][1]:
+                    count1 += 1
+                    for k in equation_list[i][0]:
+                        list1.append(k)  # append cells to list1
+                    remove.append(equation_list[i][0])
+                elif equation_list[i][1] == 0:
+                    count2 += 1
+                    for k in equation_list[i][0]:
+                        list0.append(k)  # append cells to list0
+                    remove.append(equation_list[i][0])
+            for i in equation_list:
+                for j in remove:
+                    if j == i[0]:
+                        equation_list.remove(i)
+
+            # updating the equations
+            for i in range(0, len(equation_list)):
+                for j in list0:
+                    if j in equation_list[i][0]:
+                        count2 += 1
+                        equation_list[i][0].remove(j)
+                for k in list1:
+                    if k in equation_list[i][0]:
+                        count1 += 1
+                        equation_list[i][1] -= 1
+                        equation_list[i][0].remove(k)
+
+            if count1 != 0 or count2 != 0:
+                continue
+            else:
+                break
+
+        if len(equation_list) == 0:
+            return 1
+        else:
+            a = 1
+            for i in equation_list:
+                a *= math.factorial(len(i[0])) / (math.factorial(i[1]) * math.factorial(len(i[0]) - i[1]))  # nCr formula
+            return a
+
+# Substitute cell value as 0 and check for the number of valid possibilities
+    def sub_0(self, cell, kb):
+        equation_list = kb
+        list1 = []
+        list0 = []
+        cell_neighbours = []
+        row = cell.row
+        col = cell.col
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                if (i == 0 and j == 0) or not self.isCellValid(row + i, col + j):
+                    continue
+                neighbour = self.currGrid[row + i][col + j]
+                cell_neighbours.append(neighbour)
+        # taking only required equation from KB
+        for i in equation_list:
+            count_1 = 0
+            for j in cell_neighbours:
+                if j in i[0]:
+                    count_1 += 1
+            if count_1 == 0:
+                equation_list.remove(i)
+        # sub cell = 0
+        for i in equation_list:
+            if cell in i[0]:
+                i[0].remove(cell)
+        # repeat process till we find all the constrain equation values, if cell value is 0
+        while 1:
+            count1 = 0
+            count2 = 0
+            remove = []
+            for i in range(0, len(equation_list)):
+                if len(equation_list[i][0]) == equation_list[i][1]:
+                    count1 += 1
+                    for k in equation_list[i][0]:
+                        list1.append(k)  # append cells to list1
+                    remove.append(equation_list[i][0])
+                elif equation_list[i][1] == 0:
+                    count2 += 1
+                    for k in equation_list[i][0]:
+                        list0.append(k)  # append cells to list0
+                    remove.append(equation_list[i][0])
+            for i in equation_list:
+                for j in remove:
+                    if j == i[0]:
+                        equation_list.remove(i)
+
+            # updating the equations
+            for i in range(0, len(equation_list)):
+                for j in list0:
+                    if j in equation_list[i][0]:
+                        count2 += 1
+                        equation_list[i][0].remove(j)
+                for k in list1:
+                    if k in equation_list[i][0]:
+                        count1 += 1
+                        equation_list[i][1] -= 1
+                        equation_list[i][0].remove(k)
+
+            if count1 != 0 or count2 != 0:
+                continue
+            else:
+                break
+        if len(equation_list) == 0:
+            return 1
+        else:
+            a = 1
+            for i in equation_list:
+                a *= math.factorial(len(i[0])) / (math.factorial(i[1]) * math.factorial(len(i[0]) - i[1]))  # nCr formula
+            return a
+
+    # probability of each cell is the count of cell being a mine divided by total possibilities of it being a mine
+    def probability(self):
+        conditions = [condition[0] for condition in self.knowledge_base]
+        for cell in self.unexplored_cells:
+            if cell in conditions:
+                    cell.probability = self.sub_1(cell, self.knowledge_base) / (self.sub_1(cell, self.knowledge_base) + self.sub_0(cell , self.knowledge_base))
+                # p1 = self.sub_1(cell, self.knowledge_base)
+                # p0 = self.sub_0(cell, self.knowledge_base)
+                # a = cell.probability
+
+    #Triple improved agent
+    def most_occurred(self):
+        #get all the conditions in the knowledge base
+        conditions = [condition[0] for condition in self.knowledge_base]
+        #Initialize random_cell as null
+        random_cell = False
+        #Merge the list of conditions into a single list
+        conditions = list(itertools.chain.from_iterable(conditions))
+        max = 0
+        # for each cell in knowledge base we check the no of occurences and return most occurred cell.
+        for cell in self.unexplored_cells:
+            if conditions.count(cell) > max:
+                max = conditions.count(cell)
+                random_cell = cell
+        return random_cell
+
 
 # Driver code to test
 density_store = {}
@@ -489,6 +674,6 @@ for d in range(1,10):
     flag_store[density] = str(np.average(Store['flagged']))
 print(density_store)
 for key in density_store.keys():
-    print(str(key) + ',' + str(density_store[key]))
+    print(str(key) + ',' + str(density_store[key]) + ',' + str(flag_store[key]))
 for key in flag_store.keys():
     print(str(key) + ',' + str(flag_store[key]))
